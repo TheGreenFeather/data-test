@@ -1,85 +1,96 @@
-import { useState, useEffect } from 'react';
-import Navbar from './components/navBar'; 
-import { collection, getDocs, addDoc } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
+import React from 'react';
+import { getMessaging, getToken, onMessage } from 'firebase/messaging';
+import axios from 'axios';
 
-function App({ db }) {
-  const [teachers, setTeachers] = useState([]);
-  const [students, setStudents] = useState([]);
-  const [events, setEvents] = useState([]);
-  const [mockTests, setMockTests] = useState([]);
+function App({ messaging }) {
+  const [token,setToken]=useState([])
+  const listenToMessage = () => {
+    onMessage(messaging, (payload) => {
+      console.log('[firebase-messaging-sw.js] Received background message ', payload);
+      // const notificationTitle = payload.notification.title;
+      // const notificationOptions = {
+      //   body: payload.notification.body,
+      //   icon: payload.notification.icon
+      // };
+
+      // self.registration.showNotification(notificationTitle, notificationOptions);
+    });
+  };
+
+  const sendNotification = async () => {
+    try {
+        if (token.length === 0) {
+            console.error('No device token available.');
+            return;
+        }
+
+        const response = await axios.post('https://notification-fv06.onrender.com/api/push-notify', {
+            fcmToken: token
+        },{
+          headers : {
+            orgin: "http://localhost:5173",
+            request: "https://notification-fv06.onrender.com/api/push-notify"
+          }
+        });
+
+        console.log('Notification sent:', response.data);
+    } catch (error) {
+        console.error('Error sending notification:', error);
+    }
+};
 
   useEffect(() => {
-    const fetchData = async () => {
-      const teacherCollection = await getDocs(collection(db, 'teachers'));
-      const studentCollection = await getDocs(collection(db, 'students'));
-      const eventCollection = await getDocs(collection(db, 'events'));
-      const mockTestCollection = await getDocs(collection(db, 'mockTests'));
-
-      setTeachers(teacherCollection.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      setStudents(studentCollection.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      setEvents(eventCollection.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      setMockTests(mockTestCollection.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    const requestNotification = async () => {
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          const token = await getToken(messaging, {
+            vapidKey: 'BLMHW-HiTWfCnfoU3QgTmTh9Xg4fKK-5K-ecUGquJ5zZndJ5uffvpCSujpIFpTZO_Co2UhaCuG19LuF_MEcfM98'
+          });
+          setToken([token])
+        }
+      } catch (e) {
+        console.log(e);
+      }
     };
 
-    fetchData();
-  }, [db]);
+    requestNotification();
+    listenToMessage();
+  }, [messaging]);
 
-  const addEvent = async () => {
-    const newEvent = prompt('Enter a national event:');
-    if (newEvent) {
-      await addDoc(collection(db, 'events'), { name: newEvent });
-      setEvents([...events, { name: newEvent }]);
-    }
-  };
-
-  const addTeacher = async () => {
-    const teacherName = prompt('Enter teacher name:');
-    if (teacherName) {
-      await addDoc(collection(db, 'teachers'), { name: teacherName });
-      setTeachers([...teachers, { name: teacherName }]);
-    }
-  };
-
-  const scheduleMockTest = async () => {
-    const date = prompt('Enter the mock test date (e.g., YYYY-MM-DD):');
-    if (date) {
-      await addDoc(collection(db, 'mockTests'), { date });
-      setMockTests([...mockTests, { date }]);
-      alert(`Mock test scheduled for ${date}`);
-    }
-  };
+  
 
   return (
     <div>
-      <Navbar />
-      <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-      <p>Total Teachers: {teachers.length}</p>
-      <p>Total Students: {students.length}</p>
-      
-      <button onClick={addEvent} className="bg-blue-500 px-4 py-2 mt-4 rounded">Add Event</button>
-      <button onClick={addTeacher} className="bg-green-500 px-4 py-2 mt-4 rounded ml-2">Add Teacher</button>
-      <button onClick={scheduleMockTest} className="bg-yellow-500 px-4 py-2 mt-4 rounded ml-2">Schedule Mock Test</button>
-
-      <h2 className="text-xl mt-6">Events</h2>
-      <ul>
-        {events.map((event, index) => (
-          <li key={index} className="text-gray-400">{event.name}</li>
-        ))}
-      </ul>
-
-      <h2 className="text-xl mt-6">Teachers</h2>
-      <ul>
-        {teachers.map((teacher, index) => (
-          <li key={index} className="text-gray-400">{teacher.name}</li>
-        ))}
-      </ul>
-
-      <h2 className="text-xl mt-6">Scheduled Mock Tests</h2>
-      <ul>
-        {mockTests.map((mockTest, index) => (
-          <li key={index} className="text-gray-400">{mockTest.date}</li>
-        ))}
-      </ul>
+      <button onClick={sendNotification}>Notify</button>
+      <button onClick={() => {
+          axios({
+            method: 'post',
+            url: 'https://notification-fv06.onrender.com/api/email-notify',
+            headers: {
+              orgin: 'http://localhost:5173',
+              request: 'https://notification-fv06.onrender.com/api/email-notify',
+            }, 
+            data: {
+              text: 'i hope this works',
+              from: 'cogiao <cogiaolmao@bruhschool.edu.vn>',
+              to: 'user <lienquanaren@gmail.com>',
+              subject: 'testing emailjs'
+            }
+          })
+          .then(function (response) {
+            console.log(response);
+            Notification.requestPermission().then(function (result) {
+              if (result !== 'granted') {
+                return;
+              }
+            });
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+        }}>Notify email</button>
     </div>
   );
 }

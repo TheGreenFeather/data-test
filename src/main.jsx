@@ -2,11 +2,10 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter,Routes,Route } from "react-router";
 import App from "./App";
-import TeacherDashboard from "./screen/Teacher";
-import StudentDashboard from "./screen/Student";
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
+import { getMessaging,getToken,onMessage, } from "firebase/messaging";
 import './index.css'
 const root = document.getElementById("root");
 
@@ -20,16 +19,14 @@ const firebaseConfig = {
   measurementId: "G-YQY2SFJ323"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app)
-const str = getStorage(app)
+// Initialize Firebase
+const firebaseApp = initializeApp(firebaseConfig);
+const messaging = getMessaging(firebaseApp);
 
 ReactDOM.createRoot(root).render(
   <BrowserRouter>
     <Routes>
-      <Route path="/" element={<App db={db}/>} />
-      <Route path="/teacher" element={<TeacherDashboard db={db} str={str}/>} />
-      <Route path="/student" element={<StudentDashboard db={db} str={str}/>} />
+      <Route path="/" element={<App messaging={messaging}/>} />
     </Routes>
   </BrowserRouter>
 );
