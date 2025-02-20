@@ -10,13 +10,12 @@ import './index.css'
 const root = document.getElementById("root");
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCPmPPA2AI8Dq3CzGUH-zusZ0kJSLsRNE0",
-  authDomain: "chat-app-186d1.firebaseapp.com",
-  projectId: "chat-app-186d1",
-  storageBucket: "chat-app-186d1.appspot.com",
-  messagingSenderId: "835388868008",
-  appId: "1:835388868008:web:9ac37b128274c8bcbc099d",
-  measurementId: "G-YQY2SFJ323"
+  apiKey: "AIzaSyDTqNOquu2RebwbYqFd2vUWSlAwAh6fWiM",
+  authDomain: "web-push-notification-fd24f.firebaseapp.com",
+  projectId: "web-push-notification-fd24f",
+  storageBucket: "web-push-notification-fd24f.firebasestorage.app",
+  messagingSenderId: "25498026494",
+  appId: "1:25498026494:web:51151492858da7d75740af"
 };
 
 // Initialize Firebase

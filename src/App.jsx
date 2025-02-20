@@ -6,16 +6,16 @@ import axios from 'axios';
 function App({ messaging }) {
   const [token,setToken]=useState([])
   const listenToMessage = () => {
-    onMessage(messaging, (payload) => {
-      console.log('[firebase-messaging-sw.js] Received background message ', payload);
-      // const notificationTitle = payload.notification.title;
-      // const notificationOptions = {
-      //   body: payload.notification.body,
-      //   icon: payload.notification.icon
-      // };
+    // onMessage(messaging, (payload) => {
+    //   console.log('[firebase-messaging-sw.js] Received background message ', payload);
+    //   const notificationTitle = payload.notification.title;
+    //   const notificationOptions = {
+    //     body: payload.notification.body,
+    //     icon: payload.notification.icon
+    //   };
 
-      // self.registration.showNotification(notificationTitle, notificationOptions);
-    });
+    //   self.registration.showNotification(notificationTitle, notificationOptions);
+    // });
   };
 
   const sendNotification = async () => {
@@ -25,12 +25,15 @@ function App({ messaging }) {
             return;
         }
 
-        const response = await axios.post('https://notification-fv06.onrender.com/api/push-notify', {
+        const response = await axios.post('https://api-psw-notification.onrender.com/api/push-notify', {
+            title: 'Hello from the server',
+            body: 'This is a message from the server',
+            icon: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQr6WsCGy-o3brXcj2cmXGkHM_fE_p0gy4X8w&s',
             fcmToken: token
         },{
           headers : {
             orgin: "http://localhost:5173",
-            request: "https://notification-fv06.onrender.com/api/push-notify"
+            request: "https://api-psw-notification.onrender.com/api/push-notify"
           }
         });
 
@@ -46,7 +49,7 @@ function App({ messaging }) {
         const permission = await Notification.requestPermission();
         if (permission === 'granted') {
           const token = await getToken(messaging, {
-            vapidKey: 'BLMHW-HiTWfCnfoU3QgTmTh9Xg4fKK-5K-ecUGquJ5zZndJ5uffvpCSujpIFpTZO_Co2UhaCuG19LuF_MEcfM98'
+            vapidKey: 'BJD1YVZJDUkrqKZqFb1GyhL2TSBZEy6dbDm_hLn9QQ9X_OZuajNg9fAYDe3Qew3lM1woaqQOSb-iJBHWccJx3Z8'
           });
           setToken([token])
         }
@@ -67,25 +70,20 @@ function App({ messaging }) {
       <button onClick={() => {
           axios({
             method: 'post',
-            url: 'https://notification-fv06.onrender.com/api/email-notify',
+            url: 'https://api-psw-notification.onrender.com/api/email-notify',
             headers: {
               orgin: 'http://localhost:5173',
-              request: 'https://notification-fv06.onrender.com/api/email-notify',
+              request: 'https://api-psw-notification.onrender.com/api/email-notify',
             }, 
             data: {
               text: 'i hope this works',
               from: 'cogiao <cogiaolmao@bruhschool.edu.vn>',
-              to: 'user <lienquanaren@gmail.com>',
+              to: 'minh <chiminh75@gmail.com>, ken <lienquanaren@gmail.com>',
               subject: 'testing emailjs'
             }
           })
           .then(function (response) {
             console.log(response);
-            Notification.requestPermission().then(function (result) {
-              if (result !== 'granted') {
-                return;
-              }
-            });
           })
           .catch(function (error) {
             console.log(error);
